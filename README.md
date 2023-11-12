@@ -51,6 +51,7 @@
 | program_id      | bigint(20) |      | FOREIGN |        |                |
 | genre_id        | bigint(20) |      | FOREIGN |        |                |
 
+
 ## ステップ2 テーブル作成
 
 ### テーブル作成
