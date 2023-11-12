@@ -242,3 +242,73 @@ insert into episode (program_id, episode_title, episode_discript, episode_no, se
 ```
 
 ## ステップ3 データ抽出クエリ
+1. よく見られているエピソードを知りたいです。エピソード視聴数トップ3のエピソードタイトルと視聴数を取得してください
+```sql
+select e.episode_title, t.view_count
+from program as p
+inner join episode as e on p.program_id = e.program_id
+inner join time_table as t on e.episode_id = t.episode_id
+order by t.view_count desc
+limit 3;
+```
+```
++-------------------------+------------+
+| episode_title           | view_count |
++-------------------------+------------+
+| ニュース24時             |       7990 |
+| サザエさん 第2話         |       7891 |
+| クレヨンしんちゃん第1話   |       7890 |
++-------------------------+------------+
+```
+
+2. よく見られているエピソードの番組情報やシーズン情報も合わせて知りたいです。エピソード視聴数トップ3の番組タイトル、シーズン数、エピソード数、エピソードタイトル、視聴数を取得してください
+```sql
+select p.title, e.season_no, e.episode_no, e.episode_title, t.view_count
+from program as p
+inner join episode as e on p.program_id = e.program_id
+inner join time_table as t on e.episode_id = t.episode_id
+order by t.view_count desc
+limit 3;
+```
+```
++--------------------+-----------+------------+-------------------------+------------+
+| title              | season_no | episode_no | episode_title           | view_count |
++--------------------+-----------+------------+-------------------------+------------+
+| ニュース24時       |         0 |          0 | ニュース24時            |       7990 |
+| サザエさん         |         1 |          2 | サザエさん 第2話        |       7891 |
+| クレヨンしんちゃん |         2 |          1 | クレヨンしんちゃん第1話 |       7890 |
++--------------------+-----------+------------+-------------------------+------------+
+```
+
+3. 本日の番組表を表示するために、本日、どのチャンネルの、何時から、何の番組が放送されるのかを知りたいです。本日放送される全ての番組に対して、チャンネル名、放送開始時刻(日付+時間)、放送終了時刻、シーズン数、エピソード数、エピソードタイトル、エピソード詳細を取得してください。なお、番組の開始時刻が本日のものを本日放送される番組とみなすものとします
+```sql
+select c.channel_name, t.start_time, t.end_time, e.season_no, e.episode_no, e.episode_title, e.episode_discript
+from channel as c
+inner join time_table as t on c.channel_id = t.channel_id
+inner join episode as e on t.episode_id = e.episode_id
+where t.start_time >= timestamp('2023-11-13 00:00:00')
+and t.start_time < timestamp('2023-11-14 00:00:00')
+order by c.channel_id asc, t.start_time asc;
+```
+```
++--------------+---------------------+---------------------+-----------+------------+---------------+------------------+
+| channel_name | start_time          | end_time            | season_no | episode_no | episode_title | episode_discript |
++--------------+---------------------+---------------------+-----------+------------+---------------+------------------+
+| バラエティー | 2023-11-13 08:00:00 | 2023-11-13 08:30:00 |         1 |          1 | 相棒第1話     | 赤               |
++--------------+---------------------+---------------------+-----------+------------+---------------+------------------+
+```
+
+4. ドラマというチャンネルがあったとして、ドラマのチャンネルの番組表を表示するために、本日から一週間分、何日の何時から何の番組が放送されるのかを知りたいです。ドラマのチャンネルに対して、放送開始時刻、放送終了時刻、シーズン数、エピソード数、エピソードタイトル、エピソード詳細を本日から一週間分取得してください
+```sql
+select c.channel_name, t.start_time, t.end_time, e.season_no, e.episode_no , e.episode_title, e.episode_discript
+from episode as e
+inner join time_table as t on e.episode_id = t.episode_id
+inner join channel as c on t.channel_id = c.channel_id
+where channel_name = 'ドラマ'
+and t.start_time >= timestamp('2023-11-01 00:00:00')
+and t.start_time < timestamp('2023-11-08 00:00:00')
+order by t.start_time asc;
+```
+```
+Empty set (0.026 sec)
+```
